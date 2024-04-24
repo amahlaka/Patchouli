@@ -2,7 +2,9 @@ package vazkii.patchouli.client.book.template.variable;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 
@@ -32,8 +34,9 @@ public class ItemStackVariableSerializer implements IVariableSerializer<ItemStac
 		if (stack.getCount() != 1) {
 			ret.addProperty("count", stack.getCount());
 		}
-		if (stack.getTag() != null) {
-			ret.addProperty("nbt", stack.getTag().toString());
+		if (!stack.getComponents().isEmpty()) {
+			DataComponentMap data = stack.getComponents();
+			DataComponentMap.CODEC.encodeStart(JsonOps.INSTANCE, data).result().ifPresent(e -> ret.add("nbt", e)); //TODO: Do we want to change the "nbt" key to "components"?
 		}
 		return ret;
 	}

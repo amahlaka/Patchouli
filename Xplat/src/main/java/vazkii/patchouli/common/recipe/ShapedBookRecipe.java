@@ -1,11 +1,12 @@
 package vazkii.patchouli.common.recipe;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -50,35 +51,41 @@ public class ShapedBookRecipe extends ShapedRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<ShapedBookRecipe> {
-		public static final Codec<ShapedBookRecipe> CODEC = RecordCodecBuilder.create(
+		public static final MapCodec<ShapedBookRecipe> CODEC = RecordCodecBuilder.mapCodec(
 				instance -> instance.group(
-						ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(bookRecipe -> bookRecipe.group),
+						Codec.STRING.optionalFieldOf("group", "").forGetter(bookRecipe -> bookRecipe.group),
 						ShapedRecipePattern.MAP_CODEC.forGetter(bookRecipe -> bookRecipe.pattern),
-						ExtraCodecs.strictOptionalField(ItemStack.ITEM_WITH_COUNT_CODEC, "result", ItemStack.EMPTY).forGetter(bookRecipe -> bookRecipe.result),
-						ExtraCodecs.strictOptionalField(ResourceLocation.CODEC, "book", null).forGetter(bookRecipe -> bookRecipe.outputBook)
+						ItemStack.STRICT_CODEC.optionalFieldOf("result", ItemStack.EMPTY).forGetter(bookRecipe -> bookRecipe.result),
+						ResourceLocation.CODEC.optionalFieldOf("book", null).forGetter(bookRecipe -> bookRecipe.outputBook)
 				)
 						.apply(instance, ShapedBookRecipe::new)
 		);
+		public static final StreamCodec<RegistryFriendlyByteBuf, ShapedBookRecipe> STREAM_CODEC = StreamCodec.of(
+				ShapedBookRecipe.Serializer::toNetwork, ShapedBookRecipe.Serializer::fromNetwork
+		);
 
 		@Override
-		public Codec<ShapedBookRecipe> codec() {
+		public MapCodec<ShapedBookRecipe> codec() {
 			return CODEC;
 		}
 
 		@Override
-		public ShapedBookRecipe fromNetwork(FriendlyByteBuf buf) {
+		public StreamCodec<RegistryFriendlyByteBuf, ShapedBookRecipe> streamCodec() {
+			return STREAM_CODEC;
+		}
+
+		private static ShapedBookRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
 			String group = buf.readUtf();
-			ShapedRecipePattern recipePattern = ShapedRecipePattern.fromNetwork(buf);
-			ItemStack result = buf.readItem();
+			ShapedRecipePattern recipePattern = ShapedRecipePattern.STREAM_CODEC.decode(buf);
+			ItemStack result = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
 			ResourceLocation outputBook = buf.readBoolean() ? buf.readResourceLocation() : null;
 			return new ShapedBookRecipe(group, recipePattern, result, outputBook);
 		}
 
-		@Override
-		public void toNetwork(FriendlyByteBuf buf, ShapedBookRecipe bookRecipe) {
+		private static void toNetwork(RegistryFriendlyByteBuf buf, ShapedBookRecipe bookRecipe) {
 			buf.writeUtf(bookRecipe.group);
-			bookRecipe.pattern.toNetwork(buf);
-			buf.writeItem(bookRecipe.result);
+			ShapedRecipePattern.STREAM_CODEC.encode(buf, bookRecipe.pattern);
+			ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, bookRecipe.result);
 			buf.writeBoolean(bookRecipe.outputBook != null);
 			if (bookRecipe.outputBook != null) {
 				buf.writeResourceLocation(bookRecipe.outputBook);

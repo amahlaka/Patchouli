@@ -4,12 +4,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.JsonOps;
 
+import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
+import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
@@ -26,19 +30,22 @@ import vazkii.patchouli.common.item.ItemModBook;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public final class ItemStackUtil {
 	private static final Gson GSON = new GsonBuilder().create();
 
 	private ItemStackUtil() {}
 
-	public static Triple<ResourceLocation, Integer, CompoundTag> parseItemStackString(String res) {
-		String nbt = "";
-		int nbtStart = res.indexOf("{");
-		if (nbtStart > 0) {
-			nbt = res.substring(nbtStart).replaceAll("([^\\\\])'", "$1\"").replaceAll("\\\\'", "'");
-			res = res.substring(0, nbtStart);
+	public static Triple<ResourceLocation, Integer, DataComponentMap> parseItemStackString(String res) {
+		String components = "";
+		int componentsStart = res.indexOf("{");
+		if (componentsStart > 0) {
+			components = res.substring(componentsStart).replaceAll("([^\\\\])'", "$1\"").replaceAll("\\\\'", "'");
+			res = res.substring(0, componentsStart);
 		}
 
 		String[] upper = res.split("#");
@@ -55,23 +62,25 @@ public final class ItemStackUtil {
 
 		ResourceLocation key = new ResourceLocation(tokens[0], tokens[1]);
 		int countn = Integer.parseInt(count);
-		CompoundTag tag = null;
+		DataComponentMap.Builder componentMap = DataComponentMap.builder();
 
-		if (!nbt.isEmpty()) {
+		if (!components.isEmpty()) {
+			ItemParser parser = new ItemParser(VanillaRegistries.createLookup());
 			try {
-				tag = TagParser.parseTag(nbt);
+				ItemParser.ItemResult result = parser.parse(new StringReader(res.toString() + components)); //TODO: Check if the parsed result is correct
+				componentMap.addAll(result.components());
 			} catch (CommandSyntaxException e) {
 				throw new RuntimeException("Failed to parse ItemStack JSON", e);
 			}
 		}
 
-		return ImmutableTriple.of(key, countn, tag);
+		return ImmutableTriple.of(key, countn, componentMap.build());
 	}
 
-	public static ItemStack loadFromParsed(Triple<ResourceLocation, Integer, CompoundTag> parsed) {
+	public static ItemStack loadFromParsed(Triple<ResourceLocation, Integer, DataComponentMap> parsed) {
 		var key = parsed.getLeft();
 		var count = parsed.getMiddle();
-		var nbt = parsed.getRight();
+		var components = parsed.getRight();
 		Optional<Item> maybeItem = BuiltInRegistries.ITEM.getOptional(key);
 		if (maybeItem.isEmpty()) {
 			throw new RuntimeException("Unknown item ID: " + key);
@@ -79,8 +88,8 @@ public final class ItemStackUtil {
 		Item item = maybeItem.get();
 		ItemStack stack = new ItemStack(item, count);
 
-		if (nbt != null) {
-			stack.setTag(nbt);
+		if (!components.isEmpty()) {
+			stack.applyComponents(components);
 		}
 		return stack;
 	}
@@ -202,18 +211,10 @@ public final class ItemStackUtil {
 		ItemStack stack = new ItemStack(item, GsonHelper.getAsInt(json, "count", 1));
 
 		if (json.has("nbt")) {
-			try {
-				JsonElement element = json.get("nbt");
-				CompoundTag nbt;
-				if (element.isJsonObject()) {
-					nbt = TagParser.parseTag(GSON.toJson(element));
-				} else {
-					nbt = TagParser.parseTag(element.getAsString());
-				}
-				stack.setTag(nbt);
-			} catch (CommandSyntaxException e) {
-				throw new IllegalArgumentException("Invalid NBT Entry: " + e, e);
-			}
+			JsonElement element = json.get("nbt"); //TODO: Do we want to change the "nbt" key to "components"?
+			DataComponentPatch.CODEC.decode(JsonOps.INSTANCE, element).result().ifPresent(stuff -> {
+				stack.applyComponents(stuff.getFirst());
+			});
 		}
 
 		return stack;

@@ -9,10 +9,14 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.InteractionResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -36,7 +40,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Mod.EventBusSubscriber(modid = PatchouliAPI.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = PatchouliAPI.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class NeoForgeClientInitializer {
 	/**
 	 * Why are these necessary?
@@ -99,12 +103,12 @@ public class NeoForgeClientInitializer {
 	}
 
 	@SubscribeEvent
-	public static void registerOverlays(RegisterGuiOverlaysEvent evt) {
-		evt.registerAbove(VanillaGuiOverlay.CROSSHAIR.id(), new ResourceLocation(PatchouliAPI.MOD_ID, "book_overlay"),
-				(gui, poseStack, partialTick, width, height) -> BookRightClickHandler.onRenderHUD(poseStack, partialTick)
+	public static void registerOverlays(RegisterGuiLayersEvent evt) {
+		evt.registerAbove(VanillaGuiLayers.CROSSHAIR, new ResourceLocation(PatchouliAPI.MOD_ID, "book_overlay"),
+				BookRightClickHandler::onRenderHUD
 		);
-		evt.registerBelow(VanillaGuiOverlay.BOSS_EVENT_PROGRESS.id(), new ResourceLocation(PatchouliAPI.MOD_ID, "multiblock_progress"),
-				(gui, poseStack, partialTick, width, height) -> MultiblockVisualizationHandler.onRenderHUD(poseStack, partialTick)
+		evt.registerBelow(VanillaGuiLayers.BOSS_OVERLAY, new ResourceLocation(PatchouliAPI.MOD_ID, "multiblock_progress"),
+				MultiblockVisualizationHandler::onRenderHUD
 		);
 	}
 

@@ -3,8 +3,11 @@ package vazkii.patchouli.neoforge.common;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.CreativeModeTabRegistry;
@@ -22,14 +25,15 @@ import vazkii.patchouli.common.command.OpenBookCommand;
 import vazkii.patchouli.common.handler.LecternEventHandler;
 import vazkii.patchouli.common.handler.ReloadContentsHandler;
 import vazkii.patchouli.common.item.ItemModBook;
+import vazkii.patchouli.common.item.PatchouliDataComponents;
 import vazkii.patchouli.common.item.PatchouliItems;
 import vazkii.patchouli.neoforge.network.NeoForgeNetworkHandler;
 
-@Mod.EventBusSubscriber(modid = PatchouliAPI.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = PatchouliAPI.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 @Mod(PatchouliAPI.MOD_ID)
 public class NeoForgeModInitializer {
-	public NeoForgeModInitializer(IEventBus eventBus) {
-		NeoForgePatchouliConfig.setup();
+	public NeoForgeModInitializer(IEventBus eventBus, Dist dist, ModContainer container) {
+		NeoForgePatchouliConfig.setup(container);
 
 		eventBus.addListener(NeoForgeNetworkHandler::setupPackets);
 	}
@@ -44,6 +48,9 @@ public class NeoForgeModInitializer {
 		});
 		evt.register(Registries.RECIPE_SERIALIZER, rh -> {
 			PatchouliItems.submitRecipeSerializerRegistrations(rh::register);
+		});
+		evt.register(Registries.DATA_COMPONENT_TYPE, rh -> {
+			PatchouliDataComponents.submitDataComponentRegistrations(rh::register);
 		});
 	}
 

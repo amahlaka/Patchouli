@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import vazkii.patchouli.api.PatchouliAPI;
 import vazkii.patchouli.common.util.ItemStackUtil;
 
-public sealed interface BookIcon permits BookIcon.StackIcon,BookIcon.TextureIcon {
+public sealed interface BookIcon permits BookIcon.StackIcon, BookIcon.TextureIcon {
 	void render(GuiGraphics graphics, int x, int y);
 
 	record StackIcon(ItemStack stack) implements BookIcon {

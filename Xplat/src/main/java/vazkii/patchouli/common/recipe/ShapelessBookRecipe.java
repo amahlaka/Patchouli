@@ -2,12 +2,13 @@ package vazkii.patchouli.common.recipe;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -54,10 +55,10 @@ public class ShapelessBookRecipe extends ShapelessRecipe {
 	public static class Serializer implements RecipeSerializer<ShapelessBookRecipe> {
 		static int maxWidth = 3;
 		static int maxHeight = 3;
-		private static final Codec<ShapelessBookRecipe> CODEC = RecordCodecBuilder.create(
+		private static final MapCodec<ShapelessBookRecipe> CODEC = RecordCodecBuilder.mapCodec(
 				instance -> instance.group(
-						ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(bookRecipe -> bookRecipe.group),
-						ExtraCodecs.strictOptionalField(ItemStack.ITEM_WITH_COUNT_CODEC, "result", ItemStack.EMPTY).forGetter(bookRecipe -> bookRecipe.result),
+						Codec.STRING.optionalFieldOf("group", "").forGetter(bookRecipe -> bookRecipe.group),
+						ItemStack.STRICT_CODEC.optionalFieldOf("result", ItemStack.EMPTY).forGetter(bookRecipe -> bookRecipe.result),
 						Ingredient.CODEC_NONEMPTY
 								.listOf()
 								.fieldOf("ingredients")
@@ -76,41 +77,43 @@ public class ShapelessBookRecipe extends ShapelessRecipe {
 										DataResult::success
 								)
 								.forGetter(bookRecipe -> bookRecipe.ingredients),
-						ExtraCodecs.strictOptionalField(ResourceLocation.CODEC, "book", null).forGetter(bookRecipe -> bookRecipe.outputBook)
+						ResourceLocation.CODEC.optionalFieldOf("book", null).forGetter(bookRecipe -> bookRecipe.outputBook)
 				)
 						.apply(instance, ShapelessBookRecipe::new)
 		);
+		public static final StreamCodec<RegistryFriendlyByteBuf, ShapelessBookRecipe> STREAM_CODEC = StreamCodec.of(
+				ShapelessBookRecipe.Serializer::toNetwork, ShapelessBookRecipe.Serializer::fromNetwork
+		);
 
 		@Override
-		public Codec<ShapelessBookRecipe> codec() {
+		public MapCodec<ShapelessBookRecipe> codec() {
 			return CODEC;
 		}
 
 		@Override
-		public ShapelessBookRecipe fromNetwork(FriendlyByteBuf buf) {
+		public StreamCodec<RegistryFriendlyByteBuf, ShapelessBookRecipe> streamCodec() {
+			return STREAM_CODEC;
+		}
+
+		private static ShapelessBookRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
 			String group = buf.readUtf();
 			int i = buf.readVarInt();
 			NonNullList<Ingredient> ingredients = NonNullList.withSize(i, Ingredient.EMPTY);
-
-			for (int j = 0; j < ingredients.size(); ++j) {
-				ingredients.set(j, Ingredient.fromNetwork(buf));
-			}
-
-			ItemStack result = buf.readItem();
+			ingredients.replaceAll(p_319735_ -> Ingredient.CONTENTS_STREAM_CODEC.decode(buf));
+			ItemStack result = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
 			ResourceLocation outputBook = buf.readBoolean() ? buf.readResourceLocation() : null;
 			return new ShapelessBookRecipe(group, result, ingredients, outputBook);
 		}
 
-		@Override
-		public void toNetwork(FriendlyByteBuf buf, ShapelessBookRecipe bookRecipe) {
+		private static void toNetwork(RegistryFriendlyByteBuf buf, ShapelessBookRecipe bookRecipe) {
 			buf.writeUtf(bookRecipe.group);
 			buf.writeVarInt(bookRecipe.ingredients.size());
 
 			for (Ingredient ingredient : bookRecipe.ingredients) {
-				ingredient.toNetwork(buf);
+				Ingredient.CONTENTS_STREAM_CODEC.encode(buf, ingredient);
 			}
 
-			buf.writeItem(bookRecipe.result);
+			ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, bookRecipe.result);
 			buf.writeBoolean(bookRecipe.outputBook != null);
 			if (bookRecipe.outputBook != null) {
 				buf.writeResourceLocation(bookRecipe.outputBook);

@@ -12,13 +12,14 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import vazkii.patchouli.api.PatchouliAPI;
@@ -116,10 +117,8 @@ public class NeoForgeClientInitializer {
 	public static void onInitializeClient(FMLClientSetupEvent evt) {
 		ClientBookRegistry.INSTANCE.init();
 		PersistentData.setup();
-		NeoForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) -> {
-			if (e.phase == TickEvent.Phase.END) {
-				ClientTicker.endClientTick(Minecraft.getInstance());
-			}
+		NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> {
+			ClientTicker.endClientTick(Minecraft.getInstance());
 		});
 		NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock e) -> BookRightClickHandler.onRightClick(e.getEntity(), e.getLevel(), e.getHand(), e.getHitVec()));
 		NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock e) -> {
@@ -129,18 +128,15 @@ public class NeoForgeClientInitializer {
 				e.setCancellationResult(result);
 			}
 		});
-		NeoForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent e) -> {
-			if (e.phase == TickEvent.Phase.END) {
-				MultiblockVisualizationHandler.onClientTick(Minecraft.getInstance());
-			}
+		NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> {
+			MultiblockVisualizationHandler.onClientTick(Minecraft.getInstance());
 		});
 
-		NeoForge.EVENT_BUS.addListener((TickEvent.RenderTickEvent e) -> {
-			if (e.phase == TickEvent.Phase.START) {
-				ClientTicker.renderTickStart(e.renderTickTime);
-			} else {
-				ClientTicker.renderTickEnd();
-			}
+		NeoForge.EVENT_BUS.addListener((RenderFrameEvent.Pre e) -> {
+			ClientTicker.renderTickStart(e.getPartialTick());
+		});
+		NeoForge.EVENT_BUS.addListener((RenderFrameEvent.Post e) -> {
+			ClientTicker.renderTickEnd();
 		});
 
 		NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut e) -> {

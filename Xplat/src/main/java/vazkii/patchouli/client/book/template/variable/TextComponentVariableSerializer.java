@@ -1,13 +1,15 @@
 package vazkii.patchouli.client.book.template.variable;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.mojang.serialization.JsonOps;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Component.Serializer;
+import net.minecraft.network.chat.ComponentSerialization;
 
 import vazkii.patchouli.api.IVariableSerializer;
-import vazkii.patchouli.mixin.AccessorComponentSerializer;
 
 public class TextComponentVariableSerializer implements IVariableSerializer<Component> {
 	@Override
@@ -23,6 +25,6 @@ public class TextComponentVariableSerializer implements IVariableSerializer<Comp
 
 	@Override
 	public JsonElement toJson(Component stack) {
-		return AccessorComponentSerializer.invokeSerialize(stack, RegistryAccess.EMPTY);
+		return ComponentSerialization.CODEC.encodeStart(RegistryAccess.EMPTY.createSerializationContext(JsonOps.INSTANCE), stack).getOrThrow(JsonParseException::new);
 	}
 }

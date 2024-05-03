@@ -46,9 +46,6 @@ public class NeoForgeModInitializer {
 		evt.register(Registries.ITEM, rh -> {
 			PatchouliItems.submitItemRegistrations(rh::register);
 		});
-		evt.register(Registries.RECIPE_SERIALIZER, rh -> {
-			PatchouliItems.submitRecipeSerializerRegistrations(rh::register);
-		});
 		evt.register(Registries.DATA_COMPONENT_TYPE, rh -> {
 			PatchouliDataComponents.submitDataComponentRegistrations(rh::register);
 		});

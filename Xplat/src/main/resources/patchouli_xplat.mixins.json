@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "AccessorSmithingTransformRecipe",
-    "AccessorSmithingTrimRecipe",
-    "AccessorComponentSerializer"
+    "AccessorSmithingTrimRecipe"
   ],
   "client": [
     "client.AccessorClientAdvancements",

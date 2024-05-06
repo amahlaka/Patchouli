@@ -43,11 +43,11 @@ public class NeoForgeModInitializer {
 		evt.register(Registries.SOUND_EVENT, rh -> {
 			PatchouliSounds.submitRegistrations(rh::register);
 		});
-		evt.register(Registries.ITEM, rh -> {
-			PatchouliItems.submitItemRegistrations(rh::register);
-		});
 		evt.register(Registries.DATA_COMPONENT_TYPE, rh -> {
 			PatchouliDataComponents.submitDataComponentRegistrations(rh::register);
+		});
+		evt.register(Registries.ITEM, rh -> {
+			PatchouliItems.submitItemRegistrations(rh::register);
 		});
 	}
 

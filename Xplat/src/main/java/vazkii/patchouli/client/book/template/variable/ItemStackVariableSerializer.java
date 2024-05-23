@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +19,7 @@ public class ItemStackVariableSerializer implements IVariableSerializer<ItemStac
 			return ItemStack.EMPTY;
 		}
 		if (json.isJsonPrimitive()) {
-			return ItemStackUtil.loadStackFromString(json.getAsString());
+			return ItemStackUtil.loadStackFromString(json.getAsString(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
 		}
 		if (json.isJsonObject()) {
 			return ItemStackUtil.loadStackFromJson(json.getAsJsonObject());

@@ -3,6 +3,8 @@ package vazkii.patchouli.client.book.template.variable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 
 import vazkii.patchouli.common.util.ItemStackUtil;
@@ -34,7 +36,7 @@ public class ItemStackArrayVariableSerializer extends GenericArrayVariableSerial
 			return empty;
 		}
 		if (json.isJsonPrimitive()) {
-			return ItemStackUtil.loadStackListFromString(json.getAsString()).toArray(empty);
+			return ItemStackUtil.loadStackListFromString(json.getAsString(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)).toArray(empty);
 		}
 		if (json.isJsonObject()) {
 			return new ItemStack[] { ItemStackUtil.loadStackFromJson(json.getAsJsonObject()) };

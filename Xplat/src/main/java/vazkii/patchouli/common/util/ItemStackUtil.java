@@ -1,27 +1,22 @@
 package vazkii.patchouli.common.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.JsonOps;
 
 import net.minecraft.commands.arguments.item.ItemParser;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
 import vazkii.patchouli.common.book.Book;
@@ -33,59 +28,34 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public final class ItemStackUtil {
-	private static final Gson GSON = new GsonBuilder().create();
-
 	private ItemStackUtil() {}
 
-	public static Triple<ResourceLocation, Integer, DataComponentMap> parseItemStackString(String res) {
-		String components = "";
-		int componentsStart = res.indexOf("{");
-		if (componentsStart > 0) {
-			components = res.substring(componentsStart).replaceAll("([^\\\\])'", "$1\"").replaceAll("\\\\'", "'");
-			res = res.substring(0, componentsStart);
-		}
-
-		String[] upper = res.split("#");
-		String count = "1";
-		if (upper.length > 1) {
-			res = upper[0];
-			count = upper[1];
-		}
-
-		String[] tokens = res.split(":");
-		if (tokens.length < 2) {
-			throw new RuntimeException("Malformed item ID " + res);
-		}
-
-		ResourceLocation key = new ResourceLocation(tokens[0], tokens[1]);
-		int countn = Integer.parseInt(count);
-		DataComponentMap.Builder componentMap = DataComponentMap.builder();
-
-		if (!components.isEmpty()) {
-			ItemParser parser = new ItemParser(VanillaRegistries.createLookup());
-			try {
-				ItemParser.ItemResult result = parser.parse(new StringReader(res.toString() + components)); //TODO: Check if the parsed result is correct
-				componentMap.addAll(result.components());
-			} catch (CommandSyntaxException e) {
-				throw new RuntimeException("Failed to parse ItemStack JSON", e);
+	public static Triple<Holder<Item>, DataComponentMap, Integer> deserializeStack(String string, HolderLookup.Provider registries) {
+		StringReader reader = new StringReader(string.trim());
+		ItemParser itemParser = new ItemParser(registries);
+		try {
+			ItemParser.ItemResult result = itemParser.parse(reader);
+			int count = 1;
+			if (reader.canRead()) {
+				reader.expect('#');
+				count = reader.readInt();
 			}
+			return Triple.of(result.item(), result.components(), count);
+		} catch (CommandSyntaxException e) {
+			throw new RuntimeException(e);
 		}
-
-		return ImmutableTriple.of(key, countn, componentMap.build());
 	}
 
-	public static ItemStack loadFromParsed(Triple<ResourceLocation, Integer, DataComponentMap> parsed) {
-		var key = parsed.getLeft();
-		var count = parsed.getMiddle();
-		var components = parsed.getRight();
-		Optional<Item> maybeItem = BuiltInRegistries.ITEM.getOptional(key);
-		if (maybeItem.isEmpty()) {
-			throw new RuntimeException("Unknown item ID: " + key);
+	public static ItemStack loadFromParsed(Triple<Holder<Item>, DataComponentMap, Integer> parsed) {
+		var holder = parsed.getLeft();
+		var components = parsed.getMiddle();
+		var count = parsed.getRight();
+		if (!holder.isBound() && holder.unwrapKey().isPresent()) {
+			throw new RuntimeException("Unknown item ID: " + holder.unwrapKey().get().location());
 		}
-		Item item = maybeItem.get();
+		Item item = holder.value();
 		ItemStack stack = new ItemStack(item, count);
 
 		if (!components.isEmpty()) {
@@ -94,15 +64,15 @@ public final class ItemStackUtil {
 		return stack;
 	}
 
-	public static ItemStack loadStackFromString(String res) {
-		return loadFromParsed(parseItemStackString(res));
+	public static ItemStack loadStackFromString(String res, HolderLookup.Provider registries) {
+		return loadFromParsed(deserializeStack(res, registries));
 	}
 
-	public static Ingredient loadIngredientFromString(String ingredientString) {
-		return Ingredient.of(loadStackListFromString(ingredientString).toArray(new ItemStack[0]));
+	public static Ingredient loadIngredientFromString(String ingredientString, HolderLookup.Provider registries) {
+		return Ingredient.of(loadStackListFromString(ingredientString, registries).toArray(new ItemStack[0]));
 	}
 
-	public static List<ItemStack> loadStackListFromString(String ingredientString) {
+	public static List<ItemStack> loadStackListFromString(String ingredientString, HolderLookup.Provider registries) {
 		String[] stacksSerialized = splitStacksFromSerializedIngredient(ingredientString);
 		List<ItemStack> stacks = new ArrayList<>();
 		for (String s : stacksSerialized) {
@@ -110,7 +80,7 @@ public final class ItemStackUtil {
 				var key = TagKey.create(Registries.ITEM, new ResourceLocation(s.substring(4)));
 				BuiltInRegistries.ITEM.getTag(key).ifPresent(tag -> tag.stream().forEach(item -> stacks.add(new ItemStack(item))));
 			} else {
-				stacks.add(loadStackFromString(s));
+				stacks.add(loadStackFromString(s, registries));
 			}
 		}
 		return stacks;
@@ -202,21 +172,6 @@ public final class ItemStackUtil {
 	}
 
 	public static ItemStack loadStackFromJson(JsonObject json) {
-		// Adapted from net.minecraftforge.common.crafting.CraftingHelper::getItemStack
-		String itemName = json.get("item").getAsString();
-
-		Item item = BuiltInRegistries.ITEM.getOptional(new ResourceLocation(itemName)).orElseThrow(() -> new IllegalArgumentException("Unknown item '" + itemName + "'")
-		);
-
-		ItemStack stack = new ItemStack(item, GsonHelper.getAsInt(json, "count", 1));
-
-		if (json.has("nbt")) {
-			JsonElement element = json.get("nbt"); //TODO: Do we want to change the "nbt" key to "components"?
-			DataComponentPatch.CODEC.decode(JsonOps.INSTANCE, element).result().ifPresent(stuff -> {
-				stack.applyComponents(stuff.getFirst());
-			});
-		}
-
-		return stack;
+		return ItemStack.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
 	}
 }

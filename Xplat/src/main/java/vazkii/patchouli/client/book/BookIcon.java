@@ -2,6 +2,8 @@ package vazkii.patchouli.client.book;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -32,7 +34,7 @@ public sealed interface BookIcon permits BookIcon.StackIcon, BookIcon.TextureIco
 			return new TextureIcon(new ResourceLocation(str));
 		} else {
 			try {
-				ItemStack stack = ItemStackUtil.loadStackFromString(str);
+				ItemStack stack = ItemStackUtil.loadStackFromString(str, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
 				return new StackIcon(stack);
 			} catch (Exception e) {
 				PatchouliAPI.LOGGER.warn("Invalid icon item stack: {}", e.getMessage());

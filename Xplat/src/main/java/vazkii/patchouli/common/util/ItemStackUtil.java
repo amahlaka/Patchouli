@@ -171,7 +171,7 @@ public final class ItemStackUtil {
 		return result.toArray(new String[0]);
 	}
 
-	public static ItemStack loadStackFromJson(JsonObject json) {
-		return ItemStack.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+	public static ItemStack loadStackFromJson(JsonObject json, HolderLookup.Provider registries) {
+		return ItemStack.CODEC.parse(registries.createSerializationContext(JsonOps.INSTANCE), json).getOrThrow();
 	}
 }

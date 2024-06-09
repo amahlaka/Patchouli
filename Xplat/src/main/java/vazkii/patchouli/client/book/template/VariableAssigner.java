@@ -1,6 +1,8 @@
 package vazkii.patchouli.client.book.template;
 
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
@@ -133,7 +135,7 @@ public class VariableAssigner {
 			}
 
 			if (val == null && c.variables.has(key)) {
-				val = c.variables.get(key);
+				val = c.variables.get(key, level.registryAccess());
 			}
 
 			return val == null ? IVariable.empty() : val;
@@ -169,7 +171,7 @@ public class VariableAssigner {
 	}
 
 	private static IVariable stacks(IVariable arg) {
-		return IVariable.from(arg.as(Ingredient.class).getItems());
+		return IVariable.from(arg.as(Ingredient.class).getItems(), RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
 	}
 
 	private static String ename(String arg) {

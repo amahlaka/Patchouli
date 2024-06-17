@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -172,6 +173,19 @@ public final class ItemStackUtil {
 	}
 
 	public static ItemStack loadStackFromJson(JsonObject json, HolderLookup.Provider registries) {
-		return ItemStack.CODEC.parse(registries.createSerializationContext(JsonOps.INSTANCE), json).getOrThrow();
+		String itemName = json.get("item").getAsString();
+
+		Item item = BuiltInRegistries.ITEM.getOptional(new ResourceLocation(itemName)).orElseThrow(() -> new IllegalArgumentException("Unknown item '" + itemName + "'")
+		);
+
+		ItemStack stack = new ItemStack(item, GsonHelper.getAsInt(json, "count", 1));
+
+		if (json.has("components")) {
+			DataComponentMap.CODEC.parse(registries.createSerializationContext(JsonOps.INSTANCE), json.get("components")).resultOrPartial(e -> {
+				throw new IllegalArgumentException("Failed to parse components: " + e);
+			}).ifPresent(stack::applyComponents);
+		}
+
+		return stack;
 	}
 }

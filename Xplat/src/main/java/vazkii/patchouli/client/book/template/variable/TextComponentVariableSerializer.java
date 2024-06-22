@@ -17,7 +17,7 @@ public class TextComponentVariableSerializer implements IVariableSerializer<Comp
 		if (json.isJsonNull()) {
 			return Component.literal("");
 		}
-		if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+		if (json.isJsonPrimitive()) {
 			return Component.literal(json.getAsString());
 		}
 		return Serializer.fromJson(json, registries);

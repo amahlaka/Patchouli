@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 public record MessageOpenBookGui(ResourceLocation book, @Nullable ResourceLocation entry, int page) implements CustomPacketPayload {
 
-	public static final ResourceLocation ID = new ResourceLocation(PatchouliAPI.MOD_ID, "open_book");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "open_book");
 	public static final StreamCodec<FriendlyByteBuf, MessageOpenBookGui> CODEC = CustomPacketPayload.codec(
 			MessageOpenBookGui::write,
 			MessageOpenBookGui::new);
@@ -23,7 +23,7 @@ public record MessageOpenBookGui(ResourceLocation book, @Nullable ResourceLocati
 
 	private static ResourceLocation getEntry(FriendlyByteBuf buf) {
 		String entry = buf.readUtf();
-		return entry.isEmpty() ? null : new ResourceLocation(entry);
+		return entry.isEmpty() ? null : ResourceLocation.tryParse(entry);
 	}
 
 	public void write(FriendlyByteBuf buf) {

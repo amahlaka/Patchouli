@@ -36,7 +36,8 @@ public class StubMultiblock implements IMultiblock {
 
 	@Override
 	public ResourceLocation getID() {
-		return new ResourceLocation("patchouli", "stub");
+		return ResourceLocation.fromNamespaceAndPath("patchouli", "stub");
+		//return ResourceLocation.tryParse("patchouli", "stub");
 	}
 
 	@Override

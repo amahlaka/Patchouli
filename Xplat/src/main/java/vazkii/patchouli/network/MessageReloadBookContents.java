@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import vazkii.patchouli.api.PatchouliAPI;
 
 public record MessageReloadBookContents() implements CustomPacketPayload {
-	public static final ResourceLocation ID = new ResourceLocation(PatchouliAPI.MOD_ID, "reload_books");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "reload_books");
 	public static final StreamCodec<FriendlyByteBuf, MessageReloadBookContents> CODEC = CustomPacketPayload.codec(
 			MessageReloadBookContents::write,
 			MessageReloadBookContents::new);

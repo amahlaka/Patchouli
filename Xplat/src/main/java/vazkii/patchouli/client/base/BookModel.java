@@ -31,7 +31,8 @@ public class BookModel implements BakedModel {
 
 	public BookModel(BakedModel original, ModelBakery loader) {
 		this.original = original;
-		BlockModel missing = (BlockModel) loader.getModel(ModelBakery.MISSING_MODEL_LOCATION);
+
+		BlockModel missing = (BlockModel) Minecraft.getInstance().getModelManager().getMissingModel();
 
 		this.itemHandler = new ItemOverrides(new ModelBaker() {
 			// soft implement IForgeModelBaker

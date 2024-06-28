@@ -86,7 +86,7 @@ public class NeoForgeClientInitializer {
 				.forEach(e::register);
 
 		ItemPropertyFunction prop = (stack, world, entity, seed) -> ItemModBook.getCompletion(stack);
-		ItemProperties.register(PatchouliItems.BOOK, new ResourceLocation(PatchouliAPI.MOD_ID, "completion"), prop);
+		ItemProperties.register(PatchouliItems.BOOK,ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "completion"), prop);
 	}
 
 	@SubscribeEvent
@@ -105,10 +105,10 @@ public class NeoForgeClientInitializer {
 
 	@SubscribeEvent
 	public static void registerOverlays(RegisterGuiLayersEvent evt) {
-		evt.registerAbove(VanillaGuiLayers.CROSSHAIR, new ResourceLocation(PatchouliAPI.MOD_ID, "book_overlay"),
+		evt.registerAbove(VanillaGuiLayers.CROSSHAIR,ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "book_overlay"),
 				BookRightClickHandler::onRenderHUD
 		);
-		evt.registerBelow(VanillaGuiLayers.BOSS_OVERLAY, new ResourceLocation(PatchouliAPI.MOD_ID, "multiblock_progress"),
+		evt.registerBelow(VanillaGuiLayers.BOSS_OVERLAY,ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "multiblock_progress"),
 				MultiblockVisualizationHandler::onRenderHUD
 		);
 	}

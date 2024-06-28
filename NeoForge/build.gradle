@@ -11,6 +11,7 @@ if (System.getenv().RELEASE_MODE != "1") {
 }
 
 repositories {
+    mavenLocal()
     maven {
         name = "JEI"
         url "https://maven.blamejared.com/"
@@ -37,11 +38,11 @@ runs {
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:20.6.115"
+    implementation "net.neoforged:neoforge:21.0.42-beta"
     implementation project(":Xplat")
 
-    compileOnly "mezz.jei:jei-1.20.6-common-api:18.0.0.62"
-    testCompileOnly "mezz.jei:jei-1.20.6-common-api:18.0.0.62"
+    compileOnly "mezz.jei:jei-1.21-common-api:19.0.0.11"
+    testCompileOnly "mezz.jei:jei-1.21-common-api:19.0.0.11"
 }
 
 tasks.named('test').configure {

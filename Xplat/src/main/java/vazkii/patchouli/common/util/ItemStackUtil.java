@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -78,7 +79,7 @@ public final class ItemStackUtil {
 		List<ItemStack> stacks = new ArrayList<>();
 		for (String s : stacksSerialized) {
 			if (s.startsWith("tag:")) {
-				var key = TagKey.create(Registries.ITEM, new ResourceLocation(s.substring(4)));
+				var key = TagKey.create(Registries.ITEM,ResourceLocation.tryParse(s.substring(4)));
 				BuiltInRegistries.ITEM.getTag(key).ifPresent(tag -> tag.stream().forEach(item -> stacks.add(new ItemStack(item))));
 			} else {
 				stacks.add(loadStackFromString(s, registries));
@@ -175,7 +176,7 @@ public final class ItemStackUtil {
 	public static ItemStack loadStackFromJson(JsonObject json, HolderLookup.Provider registries) {
 		String itemName = json.get("item").getAsString();
 
-		Item item = BuiltInRegistries.ITEM.getOptional(new ResourceLocation(itemName)).orElseThrow(() -> new IllegalArgumentException("Unknown item '" + itemName + "'")
+		Item item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.tryParse(itemName)).orElseThrow(() -> new IllegalArgumentException("Unknown item '" + itemName + "'")
 		);
 
 		ItemStack stack = new ItemStack(item, GsonHelper.getAsInt(json, "count", 1));

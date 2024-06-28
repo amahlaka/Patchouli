@@ -46,6 +46,7 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.SequencedMap;
 import java.util.function.Function;
 
 public class MultiblockVisualizationHandler {
@@ -339,17 +340,17 @@ public class MultiblockVisualizationHandler {
 	}
 
 	private static MultiBufferSource.BufferSource initBuffers(MultiBufferSource.BufferSource original) {
-		BufferBuilder fallback = ((AccessorMultiBufferSource) original).getFallbackBuffer();
-		Map<RenderType, BufferBuilder> layerBuffers = ((AccessorMultiBufferSource) original).getFixedBuffers();
-		Map<RenderType, BufferBuilder> remapped = new Object2ObjectLinkedOpenHashMap<>();
-		for (Map.Entry<RenderType, BufferBuilder> e : layerBuffers.entrySet()) {
+		ByteBufferBuilder fallback = ((AccessorMultiBufferSource) original).getFallbackBuffer();
+		SequencedMap<RenderType, ByteBufferBuilder> layerBuffers = ((AccessorMultiBufferSource) original).getFixedBuffers();
+		SequencedMap<RenderType, ByteBufferBuilder> remapped = new Object2ObjectLinkedOpenHashMap<>();
+		for (Map.Entry<RenderType, ByteBufferBuilder> e : layerBuffers.entrySet()) {
 			remapped.put(GhostRenderLayer.remap(e.getKey()), e.getValue());
 		}
 		return new GhostBuffers(fallback, remapped);
 	}
 
 	private static class GhostBuffers extends MultiBufferSource.BufferSource {
-		protected GhostBuffers(BufferBuilder fallback, Map<RenderType, BufferBuilder> layerBuffers) {
+		protected GhostBuffers(ByteBufferBuilder fallback, SequencedMap<RenderType, ByteBufferBuilder> layerBuffers) {
 			super(fallback, layerBuffers);
 		}
 

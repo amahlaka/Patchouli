@@ -45,8 +45,18 @@ public class BookModel implements BakedModel {
 				return null;
 			}
 
+
+			public BakedModel bakeUncached(UnbakedModel model, ModelState state, Function<Material, TextureAtlasSprite> sprites) {
+				// Implement the method here
+				return null;
+			}
+
 			@Override
 			public UnbakedModel getModel(ResourceLocation resourceLocation) {
+				return null;
+			}
+
+			public UnbakedModel getTopLevelModel(ModelResourceLocation location) {
 				return null;
 			}
 
@@ -61,7 +71,7 @@ public class BookModel implements BakedModel {
 					@Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
 				Book book = ItemModBook.getBook(stack);
 				if (book != null) {
-					ModelResourceLocation modelPath = new ModelResourceLocation(book.model, "inventory");
+					ModelResourceLocation modelPath = new ModelResourceLocation(book.model, "standalone");
 					return Minecraft.getInstance().getModelManager().getModel(modelPath);
 				}
 				return original;

@@ -8,6 +8,7 @@ import com.mojang.datafixers.util.Pair;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -84,12 +85,12 @@ public class MultiblockVisualizationHandler {
 		}
 	}
 
-	public static void onRenderHUD(GuiGraphics graphics, float partialTicks) {
+	public static void onRenderHUD(GuiGraphics graphics, DeltaTracker partialTicks) {
 		if (hasMultiblock) {
 			int waitTime = 40;
 			int fadeOutSpeed = 4;
 			int fullAnimTime = waitTime + 10;
-			float animTime = timeComplete + (timeComplete == 0 ? 0 : partialTicks);
+			float animTime = timeComplete + (timeComplete == 0 ? 0 : partialTicks.getGameTimeDeltaPartialTick(false));
 
 			if (animTime > fullAnimTime) {
 				hasMultiblock = false;
@@ -320,15 +321,14 @@ public class MultiblockVisualizationHandler {
 		float f7 = (float) (endColor & 255) / 255.0F;
 		RenderSystem.enableBlend();
 		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.getBuilder();
-		bufferbuilder.begin(Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		Tesselator tesselator = Tesselator.getInstance();
+		BufferBuilder bufferbuilder =  tesselator.begin(Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		Matrix4f mat = graphics.pose().last().pose();
-		bufferbuilder.vertex(mat, right, top, 0).color(f1, f2, f3, f).endVertex();
-		bufferbuilder.vertex(mat, left, top, 0).color(f1, f2, f3, f).endVertex();
-		bufferbuilder.vertex(mat, left, bottom, 0).color(f5, f6, f7, f4).endVertex();
-		bufferbuilder.vertex(mat, right, bottom, 0).color(f5, f6, f7, f4).endVertex();
-		tessellator.end();
+		bufferbuilder.addVertex(mat, right, top, 0).setColor(f1, f2, f3, f);
+		bufferbuilder.addVertex(mat, left, top, 0).setColor(f1, f2, f3, f);
+		bufferbuilder.addVertex(mat, left, bottom, 0).setColor(f5, f6, f7, f4);
+		bufferbuilder.addVertex(mat, right, bottom, 0).setColor(f5, f6, f7, f4);
+		BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
 		RenderSystem.disableBlend();
 	}
 

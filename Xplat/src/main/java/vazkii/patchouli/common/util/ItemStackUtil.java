@@ -34,7 +34,7 @@ import java.util.List;
 public final class ItemStackUtil {
 	private ItemStackUtil() {}
 
-	public static Triple<Holder<Item>, DataComponentMap, Integer> deserializeStack(String string, HolderLookup.Provider registries) {
+	public static Triple<Holder<Item>, DataComponentPatch, Integer> deserializeStack(String string, HolderLookup.Provider registries) {
 		StringReader reader = new StringReader(string.trim());
 		ItemParser itemParser = new ItemParser(registries);
 		try {
@@ -50,7 +50,7 @@ public final class ItemStackUtil {
 		}
 	}
 
-	public static ItemStack loadFromParsed(Triple<Holder<Item>, DataComponentMap, Integer> parsed) {
+	public static ItemStack loadFromParsed(Triple<Holder<Item>, DataComponentPatch, Integer> parsed) {
 		var holder = parsed.getLeft();
 		var components = parsed.getMiddle();
 		var count = parsed.getRight();

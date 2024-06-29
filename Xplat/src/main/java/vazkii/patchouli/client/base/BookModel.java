@@ -71,7 +71,7 @@ public class BookModel implements BakedModel {
 					@Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
 				Book book = ItemModBook.getBook(stack);
 				if (book != null) {
-					ModelResourceLocation modelPath = new ModelResourceLocation(book.model, "standalone");
+					ModelResourceLocation modelPath = ModelResourceLocation.inventory(book.model);
 					return Minecraft.getInstance().getModelManager().getModel(modelPath);
 				}
 				return original;

@@ -57,14 +57,14 @@ public class FabricClientInitializer implements ClientModInitializer {
 
 		ModelLoadingPlugin.register(pluginContext -> {
 			for (Book book : BookRegistry.INSTANCE.books.values()) {
-				pluginContext.addModels(new ModelResourceLocation.inventory(book.model, "standalone"));
+				pluginContext.addModels(ModelResourceLocation.inventory(book.model));
 			}
 
 			pluginContext.modifyModelAfterBake().register(
 					(@Nullable BakedModel oldModel, ModelModifier.AfterBake.Context ctx) -> {
 						if (ctx.id() instanceof ModelResourceLocation key
 								&& PatchouliItems.BOOK_ID.equals(key) // checks namespace and path
-								&& key.getVariant().equals("standalone")
+								&& key.getVariant().equals("inventory")
 								&& oldModel != null) {
 							return new BookModel(oldModel, ctx.loader());
 						}

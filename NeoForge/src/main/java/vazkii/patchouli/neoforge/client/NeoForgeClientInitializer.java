@@ -82,8 +82,9 @@ public class NeoForgeClientInitializer {
 	public static void modelRegistry(ModelEvent.RegisterAdditional e) {
 		List<ResourceLocation> bookModels = getBookModels();
 		for (ResourceLocation model : bookModels) {
+			PatchouliAPI.LOGGER.debug("Registering model for book: " + model);
 			ModelResourceLocation modelResourceLocation = new ModelResourceLocation(model, "standalone");
-			e.register(new ModelResourceLocation(model, "standalone"));
+			e.register(modelResourceLocation);
 			//e.register(ModelResourceLocation.inventory(model));
 		}
 
@@ -152,8 +153,8 @@ public class NeoForgeClientInitializer {
 
 	@SubscribeEvent
 	public static void replaceBookModel(ModelEvent.ModifyBakingResult evt) {
-		ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "standalone");
-		// ModelResourceLocation.inventory(PatchouliItems.BOOK_ID);
+		//ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "standalone");
+		ModelResourceLocation key = ModelResourceLocation.inventory(PatchouliItems.BOOK_ID);
 		evt.getModels().computeIfPresent(key, (k, oldModel) -> new BookModel(oldModel, evt.getModelBakery()));
 	}
 }

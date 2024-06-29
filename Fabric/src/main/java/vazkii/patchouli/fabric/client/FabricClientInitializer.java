@@ -17,12 +17,15 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import vazkii.patchouli.api.PatchouliAPI;
+import vazkii.patchouli.client.base.BookModel;
 import vazkii.patchouli.client.base.ClientTicker;
 import vazkii.patchouli.client.base.PersistentData;
 import vazkii.patchouli.client.book.BookContentResourceListenerLoader;
 import vazkii.patchouli.client.book.ClientBookRegistry;
 import vazkii.patchouli.client.handler.BookRightClickHandler;
 import vazkii.patchouli.client.handler.MultiblockVisualizationHandler;
+import vazkii.patchouli.common.book.Book;
+import vazkii.patchouli.common.book.BookRegistry;
 import vazkii.patchouli.common.item.ItemModBook;
 import vazkii.patchouli.common.item.PatchouliItems;
 import vazkii.patchouli.fabric.network.FabricMessageOpenBookGui;
@@ -48,21 +51,24 @@ public class FabricClientInitializer implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(MessageReloadBookContents.TYPE, FabricMessageReloadBookContents::handle);
 
 		ModelLoadingPlugin.register(pluginContext -> {
-//			for (Book book : BookRegistry.INSTANCE.books.values()) { TODO: RE-implement book model loading
-//				pluginContext.addModels(ModelResourceLocation.inventory(book.model));
-//			}
-//
-//			pluginContext.modifyModelAfterBake().register(
-//					(@Nullable BakedModel oldModel, ModelModifier.AfterBake.Context ctx) -> {
-//						if (ctx.id() instanceof ModelResourceLocation key
-//								&& PatchouliItems.BOOK_ID.equals(key) // checks namespace and path
-//								&& key.getVariant().equals("inventory")
-//								&& oldModel != null) {
-//							return new BookModel(oldModel, ctx.loader());
-//						}
-//						return oldModel;
-//					}
-//			);
+			for (Book book : BookRegistry.INSTANCE.books.values()) {
+				PatchouliAPI.LOGGER.info("Adding model {}", book.model);
+				pluginContext.addModels(book.model);
+			}
+
+			pluginContext.modifyModelAfterBake().register(
+					(oldModel, ctx) -> {
+						if (ctx.topLevelId() != null &&
+								PatchouliItems.BOOK_ID.equals(ctx.topLevelId().id()) // checks namespace and path
+								&& ctx.topLevelId().getVariant().equals("inventory")
+								&& oldModel != null) {
+							return new BookModel(oldModel, ctx.loader(), (model) -> {
+								return Minecraft.getInstance().getModelManager().getModel(model);
+							});
+						}
+						return oldModel;
+					}
+			);
 		});
 
 		ItemProperties.register(PatchouliItems.BOOK,

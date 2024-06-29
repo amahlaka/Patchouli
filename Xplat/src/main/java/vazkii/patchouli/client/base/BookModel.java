@@ -1,6 +1,5 @@
 package vazkii.patchouli.client.base;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModel;
@@ -30,7 +29,7 @@ public class BookModel implements BakedModel {
 	private final BakedModel original;
 	private final ItemOverrides itemHandler;
 
-	public BookModel(BakedModel original, ModelBakery loader) {
+	public BookModel(BakedModel original, ModelBakery loader, Function<ResourceLocation, BakedModel> modelGetter) {
 		this.original = original;
 		BlockModel missing = (BlockModel) ((AccessorModelBakery) loader).invokeGetModel(ModelBakery.MISSING_MODEL_LOCATION);
 
@@ -71,8 +70,7 @@ public class BookModel implements BakedModel {
 					@Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
 				Book book = ItemModBook.getBook(stack);
 				if (book != null) {
-					ModelResourceLocation modelPath = new ModelResourceLocation(book.model, "inventory");
-					return Minecraft.getInstance().getModelManager().getModel(modelPath);
+					return modelGetter.apply(book.model);
 				}
 				return original;
 			}

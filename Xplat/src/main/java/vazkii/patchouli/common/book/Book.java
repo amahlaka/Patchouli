@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 public class Book {
 
 	private static final String[] ORDINAL_SUFFIXES = new String[] { "th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th" };
-	private static final ResourceLocation DEFAULT_MODEL = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "book_brown");
+	private static final ResourceLocation DEFAULT_MODEL = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "item/book_brown");
 	private static final ResourceLocation DEFAULT_BOOK_TEXTURE = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "textures/gui/book_brown.png");
 	private static final ResourceLocation DEFAULT_FILLER_TEXTURE = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "textures/gui/page_filler.png");
 	private static final ResourceLocation DEFAULT_CRAFTING_TEXTURE = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "textures/gui/crafting.png");

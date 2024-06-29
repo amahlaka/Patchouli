@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import vazkii.patchouli.common.book.Book;
 import vazkii.patchouli.common.item.ItemModBook;
+import vazkii.patchouli.mixin.client.AccessorModelBakery;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,16 +32,26 @@ public class BookModel implements BakedModel {
 
 	public BookModel(BakedModel original, ModelBakery loader) {
 		this.original = original;
-		BlockModel missing = (BlockModel) loader.getModel(ModelBakery.MISSING_MODEL_LOCATION);
+		BlockModel missing = (BlockModel) ((AccessorModelBakery) loader).invokeGetModel(ModelBakery.MISSING_MODEL_LOCATION);
 
 		this.itemHandler = new ItemOverrides(new ModelBaker() {
-			// soft implement IForgeModelBaker
+			// soft implement IModelBakerExtension
 			public Function<Material, TextureAtlasSprite> getModelTextureGetter() {
 				return null;
 			}
 
-			// soft implement IForgeModelBaker
+			// soft implement IModelBakerExtension
 			public BakedModel bake(ResourceLocation location, ModelState state, Function<Material, TextureAtlasSprite> sprites) {
+				return null;
+			}
+
+			// soft implement IModelBakerExtension
+			public BakedModel bakeUncached(UnbakedModel model, ModelState state, Function<Material, TextureAtlasSprite> sprites) {
+				return null;
+			}
+
+			// soft implement IModelBakerExtension
+			public UnbakedModel getTopLevelModel(ModelResourceLocation location) {
 				return null;
 			}
 

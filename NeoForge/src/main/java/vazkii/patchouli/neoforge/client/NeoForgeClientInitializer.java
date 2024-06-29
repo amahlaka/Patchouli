@@ -152,8 +152,8 @@ public class NeoForgeClientInitializer {
 
 	@SubscribeEvent
 	public static void replaceBookModel(ModelEvent.ModifyBakingResult evt) {
-		ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "inventory");
 		ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "standalone");
+		// ModelResourceLocation.inventory(PatchouliItems.BOOK_ID);
 		evt.getModels().computeIfPresent(key, (k, oldModel) -> new BookModel(oldModel, evt.getModelBakery()));
 	}
 }

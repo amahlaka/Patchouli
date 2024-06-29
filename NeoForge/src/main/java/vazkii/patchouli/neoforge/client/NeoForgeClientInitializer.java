@@ -80,10 +80,12 @@ public class NeoForgeClientInitializer {
 
 	@SubscribeEvent
 	public static void modelRegistry(ModelEvent.RegisterAdditional e) {
-		getBookModels()
-				.stream()
-				.map(model -> new ModelResourceLocation(model, "inventory"))
-				.forEach(e::register);
+		List<ResourceLocation> bookModels = getBookModels();
+		for (ResourceLocation model : bookModels) {
+			ModelResourceLocation modelResourceLocation = new ModelResourceLocation(model, "standalone");
+			e.register(new ModelResourceLocation(model, "standalone"));
+			//e.register(ModelResourceLocation.inventory(model));
+		}
 
 		ItemPropertyFunction prop = (stack, world, entity, seed) -> ItemModBook.getCompletion(stack);
 		ItemProperties.register(PatchouliItems.BOOK,ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "completion"), prop);
@@ -133,7 +135,7 @@ public class NeoForgeClientInitializer {
 		});
 
 		NeoForge.EVENT_BUS.addListener((RenderFrameEvent.Pre e) -> {
-			ClientTicker.renderTickStart(e.getPartialTick());
+			ClientTicker.renderTickStart(e.getPartialTick().getGameTimeDeltaPartialTick(false));
 		});
 		NeoForge.EVENT_BUS.addListener((RenderFrameEvent.Post e) -> {
 			ClientTicker.renderTickEnd();
@@ -151,6 +153,7 @@ public class NeoForgeClientInitializer {
 	@SubscribeEvent
 	public static void replaceBookModel(ModelEvent.ModifyBakingResult evt) {
 		ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "inventory");
+		ModelResourceLocation key = new ModelResourceLocation(PatchouliItems.BOOK_ID, "standalone");
 		evt.getModels().computeIfPresent(key, (k, oldModel) -> new BookModel(oldModel, evt.getModelBakery()));
 	}
 }

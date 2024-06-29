@@ -10,12 +10,12 @@ import vazkii.patchouli.api.PatchouliAPI;
 import org.jetbrains.annotations.Nullable;
 
 public record MessageOpenBookGui(ResourceLocation book, @Nullable ResourceLocation entry, int page) implements CustomPacketPayload {
-
-	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID, "open_book");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(PatchouliAPI.MOD_ID,"open_book");
 	public static final StreamCodec<FriendlyByteBuf, MessageOpenBookGui> CODEC = CustomPacketPayload.codec(
 			MessageOpenBookGui::write,
 			MessageOpenBookGui::new);
-	public static final Type<MessageOpenBookGui> TYPE = CustomPacketPayload.createType(ID.toString());
+
+	public static final Type<MessageOpenBookGui> TYPE = new CustomPacketPayload.Type<MessageOpenBookGui>(ID);
 
 	public MessageOpenBookGui(FriendlyByteBuf buf) {
 		this(buf.readResourceLocation(), getEntry(buf), buf.readVarInt());

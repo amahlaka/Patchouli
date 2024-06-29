@@ -12,7 +12,7 @@ public record MessageReloadBookContents() implements CustomPacketPayload {
 	public static final StreamCodec<FriendlyByteBuf, MessageReloadBookContents> CODEC = CustomPacketPayload.codec(
 			MessageReloadBookContents::write,
 			MessageReloadBookContents::new);
-	public static final Type<MessageReloadBookContents> TYPE = CustomPacketPayload.createType(ID.toString());
+	public static final Type<MessageReloadBookContents> TYPE = new CustomPacketPayload.Type<>(ID);
 
 	public MessageReloadBookContents(final FriendlyByteBuf packetBuffer) {
 		this();

@@ -21,7 +21,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 import org.apache.commons.lang3.tuple.Triple;
 
-import vazkii.patchouli.api.PatchouliAPI;
 import vazkii.patchouli.common.book.Book;
 import vazkii.patchouli.common.book.BookRegistry;
 import vazkii.patchouli.common.item.ItemModBook;
